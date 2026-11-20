@@ -50,6 +50,7 @@ Not all of this has to be in the MVP. See the phases below.
 ## Later step: swap the hand-built auth for Supabase Auth
 
 Done once the MVP works, as its own piece of work. What changes:
+
 - The token-checking middleware verifies Supabase-issued tokens instead of the hand-built ones. Everything downstream still just reads the user ID.
 - The sign-in screen switches to an emailed 6-digit code, using the Supabase client for sign-in and session handling only.
 - User IDs change (Supabase has its own users), so existing data is either migrated or you start fresh.
@@ -75,6 +76,7 @@ Done once the MVP works, as its own piece of work. What changes:
 ## The screen
 
 Phone first: a single column that respects the safe areas, with the main actions reachable by thumb. On web, the same column is centred. One screen: a list of items. Each row shows:
+
 - Item name
 - Last done (or "never logged")
 - Next due, shown as approximate for wear items like brake pads (track-only items show no due date)

@@ -1,6 +1,5 @@
 {
-    "name": "@carly/api",
-    "version": "0.0.0",
-    "private": true
-  }
-  
+  "name": "@carly/api",
+  "version": "0.0.0",
+  "private": true
+}
