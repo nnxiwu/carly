@@ -1,0 +1,32 @@
+# dependencies
+node_modules/
+
+# secrets
+.env
+.env.*
+!.env.example
+
+# Expo and Metro
+.expo/
+.metro-health-check*
+
+# build output
+dist/
+build/
+web-build/
+*.tsbuildinfo
+
+# test output
+coverage/
+
+# logs
+*.log
+npm-debug.log*
+
+# OS and editor files
+.DS_Store
+.idea/
+
+# Supabase CLI local files
+supabase/.temp/
+supabase/.branches/
