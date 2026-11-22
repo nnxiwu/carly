@@ -15,8 +15,8 @@ export type MaintenanceItem = {
   id: string;
   name: string;
   interval: IntervalRule;
-  careNote?: string;
   history: ServiceRecord[];
+  careNote?: string;
 };
 
 export type Status = "ok" | "due-soon" | "overdue" | "unknown";
