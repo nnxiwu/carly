@@ -41,9 +41,9 @@ Not all of this has to be in the MVP. See the phases below.
 
 ## Phase 2 (right after the MVP works, in this order)
 
-1. Service visit form: pick a date, tick every item that was done or replaced, add an optional note. The API inserts one record per ticked item in a single transaction, all sharing a `visitId` and the same note. Visits are not their own entity, and deleting a record removes only that item's record.
+1. Service visit form: pick a date, tick every item that was done or replaced, add an optional note. The API inserts one record per ticked item in a single transaction, all sharing a `visitId` and the same note. This adds a `visit_id` column to `service_records` in a new migration. Visits are not their own entity, and deleting a record removes only that item's record.
 2. UI design with Google Stitch, then style tokens (a separate step once the unstyled list works; see the UI design section)
-3. Km-based intervals
+3. Km-based intervals (adds `km` to `service_records` and `'km'` to the allowed interval types, in a new migration)
 4. Add/edit your own items, and edit a record
 5. API tests for the endpoints
 
@@ -155,24 +155,21 @@ Naming: a maintenance item is one thing you maintain on the car (tyres, battery,
 Domain types (in the shared `domain` package, independent of the database):
 
 ```ts
-type IntervalRule =
-  | { type: "months"; value: number }
-  | { type: "none" } // track-only, e.g. fuel
-  | { type: "km"; value: number }; // Phase 2, not implemented in the MVP
+type IntervalRule = { type: "months"; value: number } | { type: "none" }; // track-only, e.g. fuel
+// Phase 2 adds: | { type: "km"; value: number }
 
 type ServiceRecord = {
   id: string;
   date: string; // "YYYY-MM-DD"
-  visitId?: string; // Phase 2: groups records logged in the same service visit
-  km?: number; // Phase 2: used when km intervals arrive
   notes?: string;
+  // Phase 2 adds: visitId?: string (groups records from one visit), km?: number
 };
 
 type MaintenanceItem = {
   id: string;
   name: string;
   interval: IntervalRule;
-  careNote: string;
+  careNote?: string;
   history: ServiceRecord[];
 };
 
@@ -200,34 +197,37 @@ refresh_tokens (                  -- removed when swapping to Supabase Auth
 )
 
 maintenance_items (
-  id uuid primary key,
+  id uuid primary key default gen_random_uuid(),
   user_id uuid not null references users(id) on delete cascade,
   name text not null,
-  interval_type text not null,    -- 'months' | 'none' | 'km'
+  interval_type text not null,    -- 'months' | 'none' (Phase 2 adds 'km')
   interval_value int,             -- required unless interval_type = 'none'
-  care_note text not null,
+  care_note text,
   sort_order int not null,
   unique (user_id, name)          -- makes seeding safe to repeat
 )
 
 service_records (
-  id uuid primary key,
-  user_id uuid not null,
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references users(id) on delete cascade,
   maintenance_item_id uuid not null references maintenance_items(id) on delete cascade,
   date date not null,
-  visit_id uuid,                  -- Phase 2
-  km int,                         -- Phase 2
   notes text,
   created_at timestamptz not null default now()
 )
 
 default_maintenance_items (       -- global template list, read-only
-  name text, interval_type text, interval_value int,
-  care_note text, sort_order int
+  name text primary key,
+  interval_type text not null,
+  interval_value int,
+  care_note text,
+  sort_order int not null
 )
 ```
 
-The optional `visitId` and `km` fields are unused in the MVP. They're in the schema now so Phase 2 doesn't need a migration for them.
+`km` and `visit_id` are not in the MVP schema. Phase 2 adds them in a new migration (`alter table`), so the schema only holds what the MVP uses. Migrations are never edited once applied. Every change is a new file in `supabase/migrations/`.
+
+All tables have Row Level Security enabled with no policies, so only the API's direct Postgres connection can read or write them.
 
 ## Project structure
 
@@ -258,7 +258,7 @@ Rules of thumb: `packages/domain` never imports React, React Native, Express or 
 
 ## Default items (starting values)
 
-Intervals for wear items are rough estimates, since real wear depends on how you drive. They become more accurate once km intervals exist.
+Intervals for wear items are rough placeholders, not researched values, since real wear depends on how you drive. Check them against your car's owner's manual or the manufacturer's service schedule. They become more accurate once km intervals exist.
 
 - Full service: 12 months
 - Engine oil and filter: 12 months
@@ -285,5 +285,6 @@ These live in the `default_maintenance_items` table, so they're data and can be 
 ## Later
 
 - Fuel details (litres, cost, economy)
+- Default items that depend on vehicle type (petrol, electric, moped). Needs a `vehicles` table with a type, and a `vehicle_type` on the default list.
 - Offline support
 - Android
