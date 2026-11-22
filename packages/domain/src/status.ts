@@ -1,4 +1,10 @@
-import { max, parseISO, addMonths, format, differenceInCalendarDays } from "date-fns";
+import {
+  max,
+  parseISO,
+  addMonths,
+  format,
+  differenceInCalendarDays,
+} from "date-fns";
 import { MaintenanceItem, Status } from "./types";
 
 export const DUE_SOON_DAYS = 30;
@@ -22,16 +28,16 @@ export function getDueDate(item: MaintenanceItem): string | null {
   const monthInterval = item.interval.value;
   const parsedDueDate = parseISO(lastDoneDate);
   const dueDate = addMonths(parsedDueDate, monthInterval);
-  return format(dueDate, "yyyy-MM-dd")
+  return format(dueDate, "yyyy-MM-dd");
 }
 
 export function getStatus(item: MaintenanceItem, today: string): Status | null {
   if (item.interval.type === "none") return null;
   const dueDate = getDueDate(item);
   if (!dueDate) return "unknown";
-  const parsedDueDate = parseISO(dueDate)
-  const parsedToday = parseISO(today)
-  const daysUntilDue = differenceInCalendarDays(parsedDueDate, parsedToday)
+  const parsedDueDate = parseISO(dueDate);
+  const parsedToday = parseISO(today);
+  const daysUntilDue = differenceInCalendarDays(parsedDueDate, parsedToday);
 
   switch (true) {
     case daysUntilDue < 0:
@@ -39,6 +45,6 @@ export function getStatus(item: MaintenanceItem, today: string): Status | null {
     case daysUntilDue <= DUE_SOON_DAYS:
       return "due-soon";
     default:
-      return "ok"
+      return "ok";
   }
 }

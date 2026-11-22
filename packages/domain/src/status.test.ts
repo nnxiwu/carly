@@ -1,7 +1,10 @@
 import { getDueDate, getLastDone, getStatus } from "./status";
 import type { IntervalRule, MaintenanceItem } from "./types";
 
-function makeItem(interval: IntervalRule, dates: string[] = []): MaintenanceItem {
+function makeItem(
+  interval: IntervalRule,
+  dates: string[] = [],
+): MaintenanceItem {
   return {
     id: "item-1",
     name: "Test item",
@@ -20,7 +23,11 @@ describe("getLastDone", () => {
   });
 
   it("returns the latest date even when records are out of order", () => {
-    const item = makeItem(every12Months, ["2025-03-01", "2025-12-20", "2025-06-15"]);
+    const item = makeItem(every12Months, [
+      "2025-03-01",
+      "2025-12-20",
+      "2025-06-15",
+    ]);
     expect(getLastDone(item)).toBe("2025-12-20");
   });
 });
@@ -35,7 +42,9 @@ describe("getDueDate", () => {
   });
 
   it("adds the interval in months to the last done date", () => {
-    expect(getDueDate(makeItem(every12Months, ["2025-12-20"]))).toBe("2026-12-20");
+    expect(getDueDate(makeItem(every12Months, ["2025-12-20"]))).toBe(
+      "2026-12-20",
+    );
   });
 
   it("uses the latest record", () => {
@@ -44,11 +53,15 @@ describe("getDueDate", () => {
   });
 
   it("clamps 31 Jan + 1 month to the end of February", () => {
-    expect(getDueDate(makeItem(every1Month, ["2025-01-31"]))).toBe("2025-02-28");
+    expect(getDueDate(makeItem(every1Month, ["2025-01-31"]))).toBe(
+      "2025-02-28",
+    );
   });
 
   it("clamps to 29 Feb in a leap year", () => {
-    expect(getDueDate(makeItem(every1Month, ["2024-01-31"]))).toBe("2024-02-29");
+    expect(getDueDate(makeItem(every1Month, ["2024-01-31"]))).toBe(
+      "2024-02-29",
+    );
   });
 });
 
@@ -61,7 +74,9 @@ describe("getStatus", () => {
   });
 
   it("returns null for track-only items, even with history", () => {
-    expect(getStatus(makeItem(trackOnly, ["2025-12-20"]), "2026-01-01")).toBeNull();
+    expect(
+      getStatus(makeItem(trackOnly, ["2025-12-20"]), "2026-01-01"),
+    ).toBeNull();
   });
 
   it("is ok when the due date is 31 days away", () => {
